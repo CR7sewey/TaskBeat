@@ -5,6 +5,9 @@ import android.os.Bundle
 import android.util.Log
 import androidx.recyclerview.widget.RecyclerView
 import androidx.room.Room
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 // https://developer.android.com/training/data-storage/room?hl=pt-br
 class MainActivity : AppCompatActivity() {
@@ -16,25 +19,24 @@ class MainActivity : AppCompatActivity() {
         ).build()
     }
 
-    private  val categoryDao by lazy {
+    private val categoryDao by lazy {
         db.categoryDao()
     }
+
+    // private lateinit var categories: List<CategoryEntity>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
+        insertDefaultCategory(categories)
         val rvCategory = findViewById<RecyclerView>(R.id.rv_categories)
         val rvTask = findViewById<RecyclerView>(R.id.rv_tasks)
 
         val taskAdapter = TaskListAdapter()
         val categoryAdapter = CategoryListAdapter()
+       // var categories: List<CategoryEntity> = categoryDao.getAll()
 
-        insertDefaultCategory(categories)
-        val categories: List<CategoryEntity> = categoryDao.getAll()
-
-        Log.i("TESTE", categories.toString())
-
+       // Log.i("TESTE", categories.toString())
         categoryAdapter.setOnClickListener { selected ->
             val categoryTemp = categories.map { item ->
 
@@ -65,15 +67,26 @@ class MainActivity : AppCompatActivity() {
         }
 
         rvCategory.adapter = categoryAdapter
-        categoryAdapter.submitList(categories)
+        getCategoriesFromDB(categoryAdapter)
 
         rvTask.adapter = taskAdapter
         taskAdapter.submitList(tasks)
     }
 
     private fun insertDefaultCategory(categories: List<CategoryUiData>) {
-        val newCategories = categories.map { it -> CategoryEntity(name=it.name, isSelected = it.isSelected) }
-        categoryDao.insertAll(newCategories)
+        GlobalScope.launch(Dispatchers.IO) {
+            val newCategories = categories.map { it -> CategoryEntity(name=it.name, isSelected = it.isSelected) }
+
+            categoryDao.insertAll(newCategories)
+        }
+    }
+
+    private fun getCategoriesFromDB(categoryAdapter: CategoryListAdapter) {
+        GlobalScope.launch(Dispatchers.IO) {
+            val categories = categoryDao.getAll()
+            val newCategories = categories.map { it -> CategoryUiData(name=it.name, isSelected = it.isSelected) }
+            categoryAdapter.submitList(newCategories)
+        }
     }
 }
 
