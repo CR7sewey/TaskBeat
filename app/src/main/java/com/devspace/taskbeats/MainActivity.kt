@@ -4,8 +4,10 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 import androidx.room.Room
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -51,16 +53,17 @@ class MainActivity : AppCompatActivity() {
         categoryAdapter.setOnClickListener { selected ->
 
             if (selected.name == "+") {
-                val intentImplicita: Intent = Intent().apply {
-                    action = Intent.ACTION_INPUT_METHOD_CHANGED
-                    type = "text/plain"
-                }
+                val createCategoryBottomSheet = InsertCategoryDialog { categoryName ->
+                    val categoryEntity = CategoryEntity(
+                        name = categoryName,
+                        isSelected = false
+                    )
 
-                val shareIntent = Intent.createChooser(intentImplicita, null)
-                startActivity(shareIntent)
-                val newC = CategoryUiData("teste 2",false)
-               // insertCategory(newC)
-                // getCategoriesTasksFromDB(categoryAdapter, taskAdapter)
+                    insertCategory(categoryEntity)
+                }
+                createCategoryBottomSheet.show(supportFragmentManager, "createCategoryBottomSheet")
+                getCategoriesTasksFromDB(categoryAdapter, taskAdapter)
+
             }
             else {
 
@@ -76,18 +79,6 @@ class MainActivity : AppCompatActivity() {
                 return@map item*/
 
                     when {
-                        /*item.name == "+" && item.isSelected -> {
-                        val intentImplicita: Intent = Intent().apply {
-                            action = Intent.ACTION_INSERT
-                            type = "text/plain"
-                        }
-
-                        val shareIntent = Intent.createChooser(intentImplicita, null)
-                        startActivity(shareIntent)
-                        val newC = CategoryUiData("teste",false)
-                        insertCategory(newC)
-                        return@map newC
-                    }*/
                         item.name == selected.name && !item.isSelected && item.name != "+" -> item.copy(
                             isSelected = true
                         )
@@ -146,7 +137,7 @@ class MainActivity : AppCompatActivity() {
             val newTasks = tasks.map { it -> TaskUiData(name=it.name, category = it.category) }
             tasksFromDB = newTasks
 
-        GlobalScope.launch(Dispatchers.Main) {
+        GlobalScope.launch(Dispatchers.Main) { // voltar para a main thread para alterar UI
             categoryAdapter.submitList(categoriesFromDB)
             taskAdapter.submitList(tasksFromDB)
         }
@@ -154,12 +145,11 @@ class MainActivity : AppCompatActivity() {
      }
 
 
-   /* private fun insertCategory(category: CategoryUiData) {
+    private fun insertCategory(category: CategoryEntity) {
         GlobalScope.launch(Dispatchers.IO) {
-            val newCat = CategoryEntity(category.name,category.isSelected)
-            categoryDao.insertOne(newCat)
+            categoryDao.insertOne(category)
         }
-    } */
+    }
 
     private fun insertDefaultCategory(categories: List<CategoryUiData>) {
         GlobalScope.launch(Dispatchers.IO) {
