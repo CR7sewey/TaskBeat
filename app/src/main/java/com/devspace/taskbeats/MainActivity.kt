@@ -34,6 +34,8 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var categoriesFromDB: List<CategoryUiData>
     private lateinit var tasksFromDB: List<TaskUiData>
+    private lateinit var taskAdapter: TaskListAdapter
+    private lateinit var categoryAdapter: CategoryListAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,8 +46,8 @@ class MainActivity : AppCompatActivity() {
         val rvCategory = findViewById<RecyclerView>(R.id.rv_categories)
         val rvTask = findViewById<RecyclerView>(R.id.rv_tasks)
 
-        val taskAdapter = TaskListAdapter()
-        val categoryAdapter = CategoryListAdapter()
+        taskAdapter = TaskListAdapter()
+        categoryAdapter = CategoryListAdapter()
         getCategoriesTasksFromDB(categoryAdapter, taskAdapter)
        // var categories: List<CategoryEntity> = categoryDao.getAll()
 
@@ -62,7 +64,6 @@ class MainActivity : AppCompatActivity() {
                     insertCategory(categoryEntity)
                 }
                 createCategoryBottomSheet.show(supportFragmentManager, "createCategoryBottomSheet")
-                getCategoriesTasksFromDB(categoryAdapter, taskAdapter)
 
             }
             else {
@@ -148,7 +149,9 @@ class MainActivity : AppCompatActivity() {
     private fun insertCategory(category: CategoryEntity) {
         GlobalScope.launch(Dispatchers.IO) {
             categoryDao.insertOne(category)
+            getCategoriesTasksFromDB(categoryAdapter, taskAdapter)
         }
+
     }
 
     private fun insertDefaultCategory(categories: List<CategoryUiData>) {
