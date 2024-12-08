@@ -23,22 +23,30 @@ class MainActivity : AppCompatActivity() {
         db.categoryDao()
     }
 
-    // private lateinit var categories: List<CategoryEntity>
+    private val taskDao by lazy {
+        db.taskUiDao()
+    }
+
+    private lateinit var categoriesFromDB: List<CategoryUiData>
+    private lateinit var tasksFromDB: List<TaskUiData>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        insertDefaultCategory(categories)
+        insertDefaultCategoryTasks(categories, tasks)
+        // insertDefaultCategory(categories)
+        // insertDefaultTasks(tasks)
         val rvCategory = findViewById<RecyclerView>(R.id.rv_categories)
         val rvTask = findViewById<RecyclerView>(R.id.rv_tasks)
 
         val taskAdapter = TaskListAdapter()
         val categoryAdapter = CategoryListAdapter()
+        getCategoriesTasksFromDB(categoryAdapter, taskAdapter)
        // var categories: List<CategoryEntity> = categoryDao.getAll()
 
        // Log.i("TESTE", categories.toString())
         categoryAdapter.setOnClickListener { selected ->
-            val categoryTemp = categories.map { item ->
+            val categoryTemp = categoriesFromDB.map { item ->
 
                 /*if (item.name == selected.name && !item.isSelected) {
                     return@map item.copy(isSelected = true)
@@ -57,9 +65,9 @@ class MainActivity : AppCompatActivity() {
 
             val taskTemp =
                 if (selected.name != "ALL") {
-                    tasks.filter { it.category == selected.name }
+                    tasksFromDB.filter { it.category == selected.name }
                 } else {
-                    tasks
+                    tasksFromDB
                 }
             taskAdapter.submitList(taskTemp)
 
@@ -67,31 +75,76 @@ class MainActivity : AppCompatActivity() {
         }
 
         rvCategory.adapter = categoryAdapter
-        getCategoriesFromDB(categoryAdapter)
+        // getCategoriesFromDB(categoryAdapter)
 
         rvTask.adapter = taskAdapter
-        taskAdapter.submitList(tasks)
+        //taskAdapter.submitList(tasks)
+        // getTasksFromDB(taskAdapter)
+
+        getCategoriesTasksFromDB(categoryAdapter, taskAdapter)
+    }
+
+    private fun insertDefaultCategoryTasks(categories: List<CategoryUiData>, tasks: List<TaskUiData>) {
+        GlobalScope.launch(Dispatchers.IO) {
+            val newCategories = categories.map { it -> CategoryEntity(name=it.name, isSelected = it.isSelected) }
+
+            categoryDao.insertAll(newCategories) // data persistency
+
+            val newTasks = tasks.map { it -> TaskUiEntity(name=it.name, category = it.category) }
+
+            taskDao.insertAll(newTasks) // data persistency
+        }
+    }
+
+    private fun getCategoriesTasksFromDB(categoryAdapter: CategoryListAdapter, taskAdapter: TaskListAdapter) {
+        GlobalScope.launch(Dispatchers.IO) {
+            val categories = categoryDao.getAll()
+            val newCategories = categories.map { it -> CategoryUiData(name=it.name, isSelected = it.isSelected) }
+            categoryAdapter.submitList(newCategories)
+            categoriesFromDB = newCategories
+            val tasks = taskDao.getAll()
+            val newTasks = tasks.map { it -> TaskUiData(name=it.name, category = it.category) }
+            taskAdapter.submitList(newTasks)
+            tasksFromDB = newTasks
+        }
     }
 
     private fun insertDefaultCategory(categories: List<CategoryUiData>) {
         GlobalScope.launch(Dispatchers.IO) {
             val newCategories = categories.map { it -> CategoryEntity(name=it.name, isSelected = it.isSelected) }
 
-            categoryDao.insertAll(newCategories)
+            categoryDao.insertAll(newCategories) // data persistency
         }
     }
 
     private fun getCategoriesFromDB(categoryAdapter: CategoryListAdapter) {
         GlobalScope.launch(Dispatchers.IO) {
             val categories = categoryDao.getAll()
-            val newCategories = categories.map { it -> CategoryUiData(name=it.name, isSelected = it.isSelected) }
-            categoryAdapter.submitList(newCategories)
+            val categoriesFromDB = categories.map { it -> CategoryUiData(name=it.name, isSelected = it.isSelected) }
+            categoryAdapter.submitList(categoriesFromDB)
+        }
+    }
+
+   private fun insertDefaultTasks(tasks: List<TaskUiData>) {
+        GlobalScope.launch(Dispatchers.IO) {
+            val newTasks = tasks.map { it -> TaskUiEntity(name=it.name, category = it.category) }
+
+            taskDao.insertAll(newTasks) // data persistency
+        }
+    }
+
+    private fun getTasksFromDB(categoryAdapter: TaskListAdapter) {
+        GlobalScope.launch(Dispatchers.IO) {
+            val tasks = taskDao.getAll()
+            val newTasks = tasks.map { it -> TaskUiData(name=it.name, category = it.category) }
+            categoryAdapter.submitList(newTasks)
         }
     }
 }
 
 
-val categories = listOf(
+val categories: List<CategoryUiData> = listOf()
+    /*listOf(
     CategoryUiData(
         name = "ALL",
         isSelected = false
@@ -116,9 +169,10 @@ val categories = listOf(
         name = "HEALTH",
         isSelected = false
     ),
-)
+)*/
 
-val tasks = listOf(
+val tasks: List<TaskUiData> = listOf()
+/*= listOf(
     TaskUiData(
         "Ler 10 páginas do livro atual",
         "STUDY"
@@ -163,4 +217,4 @@ val tasks = listOf(
         "Soltar reels da semana",
         "WORK"
     ),
-)
+)*/
