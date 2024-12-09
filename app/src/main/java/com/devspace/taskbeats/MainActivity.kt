@@ -5,9 +5,13 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.Spinner
 import androidx.recyclerview.widget.RecyclerView
 import androidx.room.Room
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -45,6 +49,7 @@ class MainActivity : AppCompatActivity() {
         // insertDefaultTasks(tasks)
         val rvCategory = findViewById<RecyclerView>(R.id.rv_categories)
         val rvTask = findViewById<RecyclerView>(R.id.rv_tasks)
+        val fab = findViewById<FloatingActionButton>(R.id.fab)
 
         taskAdapter = TaskListAdapter()
         categoryAdapter = CategoryListAdapter()
@@ -102,6 +107,22 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        fab.setOnClickListener {
+            val createTaskBottomSheet = InsertTaskDialog(
+                fun(task: String, categorySelected: String) {
+                    val taskE = TaskUiEntity(name = task, category = categorySelected)
+
+                    insertTask(taskE)
+                },
+                categoriesFromDB
+
+            )
+            createTaskBottomSheet.show(supportFragmentManager, "createTaskBottomSheet")
+
+        }
+
+
+
         rvCategory.adapter = categoryAdapter
         // getCategoriesFromDB(categoryAdapter)
 
@@ -149,6 +170,14 @@ class MainActivity : AppCompatActivity() {
     private fun insertCategory(category: CategoryEntity) {
         GlobalScope.launch(Dispatchers.IO) {
             categoryDao.insertOne(category)
+            getCategoriesTasksFromDB(categoryAdapter, taskAdapter)
+        }
+
+    }
+
+    private fun insertTask(task: TaskUiEntity) {
+        GlobalScope.launch(Dispatchers.IO) {
+            taskDao.insertOne(task)
             getCategoriesTasksFromDB(categoryAdapter, taskAdapter)
         }
 

@@ -14,5 +14,8 @@ interface TaskUiDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(taskList: List<TaskUiEntity>)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertOne(vararg taskList: TaskUiEntity)
+
 }
 
