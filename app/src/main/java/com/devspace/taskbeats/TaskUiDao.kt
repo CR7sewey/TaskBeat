@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 
 @Dao
 interface TaskUiDao {
@@ -16,6 +17,9 @@ interface TaskUiDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertOne(vararg taskList: TaskUiEntity)
+
+    @Update
+    fun update(taskEntity: TaskUiEntity)
 
 }
 

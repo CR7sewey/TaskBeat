@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 
 class TaskListAdapter :
     ListAdapter<TaskUiData, TaskListAdapter.TaskViewHolder>(TaskListAdapter) {
-
+    private lateinit var clickedTask: (TaskUiData) -> Unit
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TaskViewHolder {
         val view =
             LayoutInflater.from(parent.context).inflate(R.layout.item_task, parent, false)
@@ -19,16 +19,24 @@ class TaskListAdapter :
 
     override fun onBindViewHolder(holder: TaskViewHolder, position: Int) {
         val category = getItem(position)
-        holder.bind(category)
+        holder.bind(category, clickedTask)
     }
 
-    class TaskViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+    fun setOnClickListener(onClick: (TaskUiData) -> Unit) {
+        this.clickedTask = onClick
+    }
+
+    class TaskViewHolder(private val view: View) : RecyclerView.ViewHolder(view) {
         private val tvCategory = view.findViewById<TextView>(R.id.tv_category_name)
         private val tvTask = view.findViewById<TextView>(R.id.tv_task_name)
+       // private val root = view.findViewById<View>(R.id.root)
 
-        fun bind(task: TaskUiData) {
+        fun bind(task: TaskUiData, onClick: (TaskUiData) -> Unit) {
             tvCategory.text = task.category
             tvTask.text = task.name
+            view.setOnClickListener {
+                onClick.invoke(task)
+            }
         }
     }
 

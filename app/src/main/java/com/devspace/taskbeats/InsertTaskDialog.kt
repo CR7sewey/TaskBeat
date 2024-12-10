@@ -9,13 +9,16 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.Spinner
+import android.widget.TextView
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 
 class InsertTaskDialog(
     private val onCreateClicked: (String,String) -> Unit,
-    private val categoryList: List<CategoryUiData>
+    private val categoryList: List<CategoryUiData>,
+    private val onUpdateClicked: (String,String) -> Unit,
+    private val task: TaskUiData? = null,
 ) : BottomSheetDialogFragment() {
 
     override fun onCreateView(
@@ -25,11 +28,26 @@ class InsertTaskDialog(
     ): View? {
         val view = inflater.inflate(R.layout.insert_task, container, false)
 
-        val btnCreate = view.findViewById<Button>(R.id.btn_task_create)
+        val tv_title = view.findViewById<TextView>(R.id.tv_title)
+        val btnCreateUpdate = view.findViewById<Button>(R.id.btn_task_create)
         val tieTaskName = view.findViewById<TextInputEditText>(R.id.tie_task_name)
         val categories_list = view.findViewById<Spinner>(R.id.categories_list)
 
         val categoryStr: List<String> = categoryList.map { item -> item.name }.filter {item -> item != "ALL" && item != "+"}
+        var categorySelected: String = ""
+
+        Log.i("AQUIIII","ERRO")
+
+        if (task == null) {
+            btnCreateUpdate.text = "create"
+            tv_title.text = "Add Task"
+        }
+        else {
+            btnCreateUpdate.setText("update")
+            tieTaskName.setText(task.name)
+            tv_title.setText("Update Task")
+        }
+
 
         ArrayAdapter(
             requireActivity().baseContext,
@@ -42,7 +60,6 @@ class InsertTaskDialog(
             categories_list.adapter = adapter
         }
 
-        var categorySelected: String = ""
         categories_list.onItemSelectedListener =
             object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(parent: AdapterView<*>, view: View?, pos: Int, id: Long) {
@@ -55,15 +72,26 @@ class InsertTaskDialog(
                 }
             }
 
-        btnCreate.setOnClickListener {
-            val name = tieTaskName.text.toString()
-           // val category = categories_list.toString()
-            if (name.isNullOrBlank() || categorySelected.isNullOrBlank()) {
-                Snackbar.make(categories_list, "Insert all the values", 3000).show()
+        btnCreateUpdate.setOnClickListener {
+            if (task != null) {
+                val name = tieTaskName.text.toString()
+                // val category = categories_list.toString()
+                if (name.isNullOrBlank() || categorySelected.isNullOrBlank()) {
+                    Snackbar.make(categories_list, "Insert all the values", 3000).show()
+                } else {
+                    onUpdateClicked.invoke(name, categorySelected)
+                    dismiss()
+                }
             }
             else {
-                onCreateClicked.invoke(name,categorySelected)
-                dismiss()
+                val name = tieTaskName.text.toString()
+                // val category = categories_list.toString()
+                if (name.isNullOrBlank() || categorySelected.isNullOrBlank()) {
+                    Snackbar.make(categories_list, "Insert all the values", 3000).show()
+                } else {
+                    onCreateClicked.invoke(name, categorySelected)
+                    dismiss()
+                }
             }
         }
 
