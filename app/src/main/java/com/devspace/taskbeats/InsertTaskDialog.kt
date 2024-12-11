@@ -1,6 +1,7 @@
 package com.devspace.taskbeats
 
 import android.os.Bundle
+import android.service.autofill.VisibilitySetterAction
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -10,6 +11,8 @@ import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.Spinner
 import android.widget.TextView
+import androidx.core.view.isVisible
+import androidx.transition.Visibility
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
@@ -18,6 +21,7 @@ class InsertTaskDialog(
     private val onCreateClicked: (String,String) -> Unit,
     private val categoryList: List<CategoryUiData>,
     private val onUpdateClicked: (String,String) -> Unit,
+    private val onDeleteClicked: (String,String) -> Unit,
     private val task: TaskUiData? = null,
 ) : BottomSheetDialogFragment() {
 
@@ -30,6 +34,7 @@ class InsertTaskDialog(
 
         val tv_title = view.findViewById<TextView>(R.id.tv_title)
         val btnCreateUpdate = view.findViewById<Button>(R.id.btn_task_create)
+        val btnDelete = view.findViewById<Button>(R.id.btn_task_delete)
         val tieTaskName = view.findViewById<TextInputEditText>(R.id.tie_task_name)
         val categories_list = view.findViewById<Spinner>(R.id.categories_list)
 
@@ -65,11 +70,13 @@ class InsertTaskDialog(
         if (task == null) {
             btnCreateUpdate.text = getString(R.string.create)
             tv_title.text = getString(R.string.add_task)
+            btnDelete.isVisible = false
         }
         else {
             btnCreateUpdate.setText(getString(R.string.update))
             tieTaskName.setText(task.name)
             tv_title.setText(getString(R.string.update_task))
+            btnDelete.visibility = View.VISIBLE
 
 
             val index = categoryStr.indexOf(task.category)
@@ -95,6 +102,25 @@ class InsertTaskDialog(
                     Snackbar.make(categories_list, "Insert all the values", 3000).show()
                 } else {
                     onCreateClicked.invoke(name, categorySelected)
+                    dismiss()
+                }
+            }
+        }
+
+
+        btnDelete.setOnClickListener {
+            Log.i("AQUIIII",task.toString())
+
+            if (task == null) {
+                Snackbar.make(categories_list, "Please, select a task to delete", 3000).show()
+            }
+            else {
+                val name = tieTaskName.text.toString()
+                // val category = categories_list.toString()
+                if (name.isNullOrBlank() || categorySelected.isNullOrBlank()) {
+                    Snackbar.make(categories_list, "Insert all the values", 3000).show()
+                } else {
+                    onDeleteClicked.invoke(name, categorySelected)
                     dismiss()
                 }
             }

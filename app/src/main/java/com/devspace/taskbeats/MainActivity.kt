@@ -194,6 +194,14 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    private fun deleteTask(task: TaskUiEntity) {
+        GlobalScope.launch(Dispatchers.IO) {
+            taskDao.delete(task)
+            getCategoriesTasksFromDB(categoryAdapter, taskAdapter)
+        }
+
+    }
+
 
     private fun updateCreateTaskFunctionality(selected: TaskUiData? = null) {
         if (selected is TaskUiData) {
@@ -210,12 +218,16 @@ class MainActivity : AppCompatActivity() {
                         TaskUiEntity(id = selected.id, name = task, category = categorySelected)
                     updateTask(taskE)
                 },
+                onDeleteClicked = { task: String, categorySelected: String ->
+                    val taskE =
+                        TaskUiEntity(id = selected.id, name = task, category = categorySelected)
+                    deleteTask(taskE)
+                },
                 selected
             )
             updateTaskBottomSheet.show(supportFragmentManager, "createTaskBottomSheet")
         }
         else {
-
 
             Log.i("AGORA ", "AQUII 2")
 
@@ -230,6 +242,10 @@ class MainActivity : AppCompatActivity() {
                     val taskE = TaskUiEntity(name = task, category = categorySelected)
 
                     //insertTask(taskE)
+                },
+                onDeleteClicked = { task: String, categorySelected: String ->
+                    //val taskE = TaskUiEntity(id = selected.id, name = task, category = categorySelected)
+                    //deleteTask(taskE)
                 },
             )
             createTaskBottomSheet.show(supportFragmentManager, "createTaskBottomSheet")
