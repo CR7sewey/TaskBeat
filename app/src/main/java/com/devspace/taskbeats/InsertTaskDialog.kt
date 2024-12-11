@@ -38,17 +38,6 @@ class InsertTaskDialog(
 
         Log.i("AQUIIII","ERRO")
 
-        if (task == null) {
-            btnCreateUpdate.text = "create"
-            tv_title.text = "Add Task"
-        }
-        else {
-            btnCreateUpdate.setText("update")
-            tieTaskName.setText(task.name)
-            tv_title.setText("Update Task")
-        }
-
-
         ArrayAdapter(
             requireActivity().baseContext,
             android.R.layout.simple_spinner_item,
@@ -71,6 +60,22 @@ class InsertTaskDialog(
                     // Another interface callback.
                 }
             }
+
+
+        if (task == null) {
+            btnCreateUpdate.text = getString(R.string.create)
+            tv_title.text = getString(R.string.add_task)
+        }
+        else {
+            btnCreateUpdate.setText(getString(R.string.update))
+            tieTaskName.setText(task.name)
+            tv_title.setText(getString(R.string.update_task))
+
+
+            val index = categoryStr.indexOf(task.category)
+            Log.i("Index", index.toString())
+            categories_list.setSelection(index)
+        }
 
         btnCreateUpdate.setOnClickListener {
             if (task != null) {
