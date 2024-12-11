@@ -33,6 +33,15 @@
 
     </com.google.android.material.textfield.TextInputLayout>
 
+    <TextView
+        android:id="@+id/textDelete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Are you sure you wanna delete category "
+        android:textSize="15sp"
+        android:layout_gravity="center"
+        />
+
     <Button
         android:id="@+id/btn_category_create"
         android:layout_width="match_parent"

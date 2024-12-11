@@ -72,14 +72,21 @@ class MainActivity : AppCompatActivity() {
         categoryAdapter.setOnClickListener { selected ->
 
             if (selected.name == "+") {
-                val createCategoryBottomSheet = InsertCategoryDialog { categoryName ->
-                    val categoryEntity = CategoryEntity(
-                        name = categoryName,
-                        isSelected = false
-                    )
-
+                val createCategoryBottomSheet = InsertCategoryDialog(
+                    onCreateClicked = { categoryName ->
+                        val categoryEntity = CategoryEntity(
+                            name = categoryName,
+                            isSelected = false)
                     insertCategory(categoryEntity)
-                }
+                },
+                    onDeleteClicked = { categoryName ->
+                        val categoryEntity = CategoryEntity(
+                            name = categoryName,
+                            isSelected = false)
+                        deleteCategory(categoryEntity)
+                       }
+                    ,null
+                    )
                 createCategoryBottomSheet.show(supportFragmentManager, "createCategoryBottomSheet")
 
             }
@@ -115,6 +122,33 @@ class MainActivity : AppCompatActivity() {
                     taskAdapter.submitList(taskTemp)
 
                     categoryAdapter.submitList(categoryTemp)
+
+            }
+        }
+
+        categoryAdapter.setOnLongClickListener { selected ->
+            if (selected.name == "+" || selected.name == "ALL") {
+
+            }
+            else {
+                val createCategoryBottomSheet = InsertCategoryDialog ({ categoryName ->
+                    val categoryEntity = CategoryEntity(
+                        name = categoryName,
+                        isSelected = false
+                    )
+
+                    insertCategory(categoryEntity)
+                } ,
+                    onDeleteClicked = { categoryName ->
+                    val categoryEntity = CategoryEntity(
+                        name = categoryName,
+                        isSelected = false)
+                    deleteCategory(categoryEntity)
+                },
+                    selected
+
+                )
+                createCategoryBottomSheet.show(supportFragmentManager, "createCategoryBottomSheet")
 
             }
         }
@@ -200,6 +234,13 @@ class MainActivity : AppCompatActivity() {
             getCategoriesTasksFromDB(categoryAdapter, taskAdapter)
         }
 
+    }
+
+    private fun deleteCategory(category: CategoryEntity) {
+        GlobalScope.launch(Dispatchers.IO) {
+            categoryDao.delete(category)
+            getCategoriesTasksFromDB(categoryAdapter, taskAdapter)
+        }
     }
 
 
