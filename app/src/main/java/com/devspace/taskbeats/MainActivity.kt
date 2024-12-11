@@ -176,7 +176,7 @@ class MainActivity : AppCompatActivity() {
 
             categoryDao.insertAll(newCategories) // data persistency
 
-            val newTasks = tasks.map { it -> TaskUiEntity(name=it.name, category = it.category) }
+            val newTasks = tasks.map { it -> TaskUiEntity(id = it.id, name=it.name, category = it.category) }
 
             taskDao.insertAll(newTasks) // data persistency
         }
@@ -238,6 +238,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun deleteCategory(category: CategoryEntity) {
         GlobalScope.launch(Dispatchers.IO) {
+            taskDao.deleteByCategory(category.name)
             categoryDao.delete(category)
             getCategoriesTasksFromDB(categoryAdapter, taskAdapter)
         }
@@ -328,8 +329,7 @@ class MainActivity : AppCompatActivity() {
 
 
 val categories: List<CategoryUiData> = listOf()
-    /*listOf(
-    CategoryUiData(
+    /*CategoryUiData(
         name = "ALL",
         isSelected = false
     ),
@@ -360,48 +360,58 @@ val categories: List<CategoryUiData> = listOf()
 )*/
 
 val tasks: List<TaskUiData> = listOf()
-/*= listOf(
-    TaskUiData(
-        "Ler 10 páginas do livro atual",
-        "STUDY"
+    /*TaskUiData(
+        name = "Ler 10 páginas do livro atual",
+        category = "STUDY",
+        id = 1
     ),
     TaskUiData(
-        "45 min de treino na academia",
-        "HEALTH"
+        id = 2,
+        name ="45 min de treino na academia",
+        category = "HEALTH"
     ),
     TaskUiData(
+        id = 3,
         "Correr 5km",
         "HEALTH"
     ),
     TaskUiData(
+        id = 4,
         "Meditar por 10 min",
         "WELLNESS"
     ),
     TaskUiData(
+        id =5,
         "Silêncio total por 5 min",
         "WELLNESS"
     ),
     TaskUiData(
+        id = 6,
         "Descer o livo",
         "HOME"
     ),
     TaskUiData(
+        id = 7,
         "Tirar caixas da garagem",
         "HOME"
     ),
     TaskUiData(
+        id = 8,
         "Lavar o carro",
         "HOME"
     ),
     TaskUiData(
+        id = 9,
         "Gravar aulas DevSpace",
         "WORK"
     ),
     TaskUiData(
+        id = 10,
         "Criar planejamento de vídeos da semana",
         "WORK"
     ),
     TaskUiData(
+        id = 11,
         "Soltar reels da semana",
         "WORK"
     ),

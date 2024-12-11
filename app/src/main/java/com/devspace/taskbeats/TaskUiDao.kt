@@ -25,5 +25,8 @@ interface TaskUiDao {
     @Delete
     fun delete(taskEntity: TaskUiEntity)
 
+    @Query("delete from taskuientity where category is :categoryName")
+    fun deleteByCategory(categoryName: String)
+
 }
 
