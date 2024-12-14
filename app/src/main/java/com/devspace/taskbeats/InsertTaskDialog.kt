@@ -37,8 +37,10 @@ class InsertTaskDialog(
         val btnDelete = view.findViewById<Button>(R.id.btn_task_delete)
         val tieTaskName = view.findViewById<TextInputEditText>(R.id.tie_task_name)
         val categories_list = view.findViewById<Spinner>(R.id.categories_list)
-
-        val categoryStr: List<String> = categoryList.map { item -> item.name }.filter {item -> item != "ALL" && item != "+"}
+        val categoryStr: MutableList<String> = categoryList.map { item -> item.name }.filter {item -> item != "ALL" && item != "+"}.toMutableList()
+        if (task == null) {
+            categoryStr.add(0, "Select a category please.")
+        }
         var categorySelected: String = ""
 
         Log.i("AQUIIII","ERRO")
@@ -71,6 +73,7 @@ class InsertTaskDialog(
             btnCreateUpdate.text = getString(R.string.create)
             tv_title.text = getString(R.string.add_task)
             btnDelete.isVisible = false
+            categories_list.setSelection(0)
         }
         else {
             btnCreateUpdate.setText(getString(R.string.update))
@@ -100,7 +103,13 @@ class InsertTaskDialog(
                 // val category = categories_list.toString()
                 if (name.isNullOrBlank() || categorySelected.isNullOrBlank()) {
                     Snackbar.make(categories_list, "Insert all the values", 3000).show()
-                } else {
+                }
+                else if (categorySelected == categoryStr[0]) {
+                    Snackbar.make(categories_list, "Please, insert a category!", 3000).show()
+
+                }
+
+                else {
                     onCreateClicked.invoke(name, categorySelected)
                     dismiss()
                 }
