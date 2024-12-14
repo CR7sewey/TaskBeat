@@ -3,6 +3,9 @@ package com.devspace.taskbeats
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.widget.Button
+import android.widget.LinearLayout
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import androidx.room.Room
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -35,6 +38,9 @@ class MainActivity : AppCompatActivity() {
         TaskListAdapter()
     }
     private lateinit var categoryAdapter: CategoryListAdapter
+    private lateinit var emptyView: LinearLayout
+    private lateinit var rvCategory: RecyclerView
+    private lateinit var rvTask: RecyclerView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,10 +48,11 @@ class MainActivity : AppCompatActivity() {
         insertDefaultCategoryTasks(categories, tasks)
         // insertDefaultCategory(categories)
         // insertDefaultTasks(tasks)
-        val rvCategory = findViewById<RecyclerView>(R.id.rv_categories)
-        val rvTask = findViewById<RecyclerView>(R.id.rv_tasks)
+        emptyView = findViewById(R.id.emptyView)
+        rvCategory = findViewById(R.id.rv_categories)
+        rvTask = findViewById(R.id.rv_tasks)
         val fab = findViewById<FloatingActionButton>(R.id.fab)
-
+        val createCategoryButtonEmpty = findViewById<Button>(R.id.emptyViewCreate)
        // taskAdapter = TaskListAdapter()
         categoryAdapter = CategoryListAdapter()
 
@@ -60,6 +67,26 @@ class MainActivity : AppCompatActivity() {
         }
 
         getCategoriesTasksFromDB(categoryAdapter, taskAdapter)
+
+        createCategoryButtonEmpty.setOnClickListener {
+                val createCategoryBottomSheet = InsertCategoryDialog(
+                    onCreateClicked = { categoryName ->
+                        val categoryEntity = CategoryEntity(
+                            name = categoryName,
+                            isSelected = false)
+                        insertCategory(categoryEntity)
+                    },
+                    onDeleteClicked = { categoryName ->
+                        val categoryEntity = CategoryEntity(
+                            name = categoryName,
+                            isSelected = false)
+                        deleteCategory(categoryEntity)
+                    }
+                    ,null
+                )
+                createCategoryBottomSheet.show(supportFragmentManager, "createCategoryBottomSheet")
+        }
+
 
        // Log.i("TESTE", categories.toString())
         categoryAdapter.setOnClickListener { selected ->
@@ -183,6 +210,18 @@ class MainActivity : AppCompatActivity() {
     private fun getCategoriesTasksFromDB(categoryAdapter: CategoryListAdapter, taskAdapter: TaskListAdapter) {
         GlobalScope.launch(Dispatchers.IO) {
             val categories = categoryDao.getAll()
+            GlobalScope.launch(Dispatchers.Main) {
+                if (categories.isNotEmpty()) {
+                    emptyView.isVisible = false
+                    rvCategory.isVisible = true
+                    rvTask.isVisible = true
+                }
+                else {
+                    emptyView.isVisible = true
+                    rvCategory.isVisible = false
+                    rvTask.isVisible = false
+                }
+            }
             val newCategories =
                 categories.map { it -> CategoryUiData(name = it.name, isSelected = it.isSelected) }
                     .toMutableList()
