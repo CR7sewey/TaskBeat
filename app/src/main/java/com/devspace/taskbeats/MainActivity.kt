@@ -1,22 +1,15 @@
 package com.devspace.taskbeats
 
-import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.view.View
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.Spinner
 import androidx.recyclerview.widget.RecyclerView
 import androidx.room.Room
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlin.time.Duration
 
 // https://developer.android.com/training/data-storage/room?hl=pt-br
 class MainActivity : AppCompatActivity() {
@@ -102,24 +95,29 @@ class MainActivity : AppCompatActivity() {
                     return@map item.copy(isSelected = false)
                 }
                 return@map item*/
-
+                    Log.i("ITEM",item.name)
                     when {
-                        item.name == selected.name && !item.isSelected && item.name != "+" -> item.copy(
+                        item.name == selected.name && item.isSelected -> item.copy(
                             isSelected = true
                         )
-
-                        item.name == selected.name && item.isSelected -> item.copy(isSelected = false)
+                        item.name == selected.name && !item.isSelected -> item.copy(
+                            isSelected = true
+                        )
+                        item.name != selected.name && item.isSelected -> item.copy(isSelected = false)
                         else -> item
                     }
+
                 }
 
-                val taskTemp =
+
                     if (selected.name != "ALL" && selected.name != "+") {
-                        tasksFromDB.filter { it.category == selected.name }
+                        getTasksByCategory(category = selected.name)
+                        //tasksFromDB.filter { it.category == selected.name }
                     } else {
-                        tasksFromDB
+                        getTasksFromDB(taskAdapter)
+                       // getCategoriesTasksFromDB(categoryAdapter, taskAdapter) - faz reset e nao seleciona o all
                     }
-                    taskAdapter.submitList(taskTemp)
+
 
                     categoryAdapter.submitList(categoryTemp)
 
@@ -128,7 +126,7 @@ class MainActivity : AppCompatActivity() {
 
         categoryAdapter.setOnLongClickListener { selected ->
             if (selected.name == "+" || selected.name == "ALL") {
-
+                Snackbar.make(rvCategory, "Not allowed to delete", 2000).show()
             }
             else {
                 val createCategoryBottomSheet = InsertCategoryDialog ({ categoryName ->
@@ -189,7 +187,8 @@ class MainActivity : AppCompatActivity() {
                 categories.map { it -> CategoryUiData(name = it.name, isSelected = it.isSelected) }
                     .toMutableList()
             // Add fake + category (not to DB)
-            newCategories.add(CategoryUiData(name = "+", false))
+            newCategories.add(0,CategoryUiData(name = "ALL", true)) // always selecte onCreate
+            newCategories.add(index = newCategories.size ,CategoryUiData(name = "+", false))
             categoriesFromDB = newCategories
 
             val tasks = taskDao.getAll()
@@ -242,6 +241,17 @@ class MainActivity : AppCompatActivity() {
             categoryDao.delete(category)
             getCategoriesTasksFromDB(categoryAdapter, taskAdapter)
         }
+    }
+
+    private fun getTasksByCategory(category: String) {
+        GlobalScope.launch(Dispatchers.IO) {
+            val tasksFromDB = taskDao.getAllByCategoryName(category).map { it -> TaskUiData(it.id, it.name, category = it.category) }
+
+            GlobalScope.launch(Dispatchers.Main) {
+                taskAdapter.submitList((tasksFromDB))
+            }
+        }
+
     }
 
 
@@ -322,7 +332,11 @@ class MainActivity : AppCompatActivity() {
         GlobalScope.launch(Dispatchers.IO) {
             val tasks = taskDao.getAll()
             val newTasks = tasks.map { it -> TaskUiData(it.id, name=it.name, category = it.category) }
-            categoryAdapter.submitList(newTasks)
+            tasksFromDB = newTasks
+
+            GlobalScope.launch(Dispatchers.Main) {
+                categoryAdapter.submitList(newTasks)
+            }
         }
     }
 }

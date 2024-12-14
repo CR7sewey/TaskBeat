@@ -28,5 +28,8 @@ interface TaskUiDao {
     @Query("delete from taskuientity where category is :categoryName")
     fun deleteByCategory(categoryName: String)
 
+    @Query("Select * From taskuientity where category is :categoryName")
+    fun getAllByCategoryName(categoryName: String): List<TaskUiEntity>
+
 }
 
